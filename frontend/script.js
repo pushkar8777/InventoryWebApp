@@ -1,5 +1,4 @@
-const API = "http://localhost:8080/api";
-
+const API = "https://pushkar-webapp-backend.onrender.com/api";
 
 function showSection(sectionId) {
 
