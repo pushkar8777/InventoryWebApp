@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Inventory Control System</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="sidebar">
+
+    <h2>Inventory</h2>
+
+    <button onclick="showSection('dashboard')">
+        Dashboard
+    </button>
+
+    <button onclick="showSection('products')">
+        Products
+    </button>
+
+    <button onclick="showSection('suppliers')">
+        Suppliers
+    </button>
+
+    <button onclick="showSection('purchases')">
+        Purchases
+    </button>
+
+    <button onclick="showSection('sales')">
+        Sales
+    </button>
+
+    <button onclick="showSection('reports')">
+        Reports
+    </button>
+
+</div>
+
+
+<div class="main">
+
+    <header>
+        <h1>Inventory Control System</h1>
+    </header>
+
+
+    <!-- DASHBOARD -->
+
+    <section id="dashboard" class="section active">
+
+        <h2>Dashboard</h2>
+
+        <div class="cards">
+
+            <div class="card">
+                <h3>Products</h3>
+                <p id="productCount">0</p>
+            </div>
+
+            <div class="card">
+                <h3>Suppliers</h3>
+                <p id="supplierCount">0</p>
+            </div>
+
+            <div class="card">
+                <h3>Purchases</h3>
+                <p id="purchaseCount">0</p>
+            </div>
+
+            <div class="card">
+                <h3>Sales</h3>
+                <p id="salesCount">0</p>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- PRODUCTS -->
+
+    <section id="products" class="section">
+
+        <h2>Products</h2>
+
+        <div class="form-box">
+
+            <input
+                type="text"
+                id="productName"
+                placeholder="Product Name"
+            >
+
+            <input
+                type="text"
+                id="productCategory"
+                placeholder="Category"
+            >
+
+            <input
+                type="number"
+                id="productPrice"
+                placeholder="Price"
+            >
+
+            <input
+                type="number"
+                id="productStock"
+                placeholder="Stock"
+            >
+
+            <button onclick="addProduct()">
+                Add Product
+            </button>
+
+        </div>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                </tr>
+            </thead>
+
+            <tbody id="productTable">
+            </tbody>
+
+        </table>
+
+    </section>
+
+
+    <!-- SUPPLIERS -->
+
+    <section id="suppliers" class="section">
+
+        <h2>Suppliers</h2>
+
+        <div class="form-box">
+
+            <input
+                type="text"
+                id="supplierName"
+                placeholder="Supplier Name"
+            >
+
+            <input
+                type="text"
+                id="supplierPhone"
+                placeholder="Phone"
+            >
+
+            <input
+                type="email"
+                id="supplierEmail"
+                placeholder="Email"
+            >
+
+            <input
+                type="text"
+                id="supplierAddress"
+                placeholder="Address"
+            >
+
+            <button onclick="addSupplier()">
+                Add Supplier
+            </button>
+
+        </div>
+
+        <table>
+
+            <thead>
+
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Address</th>
+                </tr>
+
+            </thead>
+
+            <tbody id="supplierTable">
+            </tbody>
+
+        </table>
+
+    </section>
+
+
+    <!-- PURCHASES -->
+
+    <section id="purchases" class="section">
+
+        <h2>Purchases</h2>
+
+        <div class="form-box">
+
+            <input
+                type="number"
+                id="purchaseProduct"
+                placeholder="Product ID"
+            >
+
+            <input
+                type="number"
+                id="purchaseSupplier"
+                placeholder="Supplier ID"
+            >
+
+            <input
+                type="number"
+                id="purchaseQuantity"
+                placeholder="Quantity"
+            >
+
+            <input
+                type="number"
+                id="purchasePrice"
+                placeholder="Purchase Price"
+            >
+
+            <button onclick="addPurchase()">
+                Add Purchase
+            </button>
+
+        </div>
+
+        <table>
+
+            <thead>
+
+                <tr>
+                    <th>ID</th>
+                    <th>Product ID</th>
+                    <th>Supplier ID</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Date</th>
+                </tr>
+
+            </thead>
+
+            <tbody id="purchaseTable">
+            </tbody>
+
+        </table>
+
+    </section>
+
+
+    <!-- SALES -->
+
+    <section id="sales" class="section">
+
+        <h2>Sales</h2>
+
+        <div class="form-box">
+
+            <input
+                type="number"
+                id="saleProduct"
+                placeholder="Product ID"
+            >
+
+            <input
+                type="number"
+                id="saleQuantity"
+                placeholder="Quantity"
+            >
+
+            <input
+                type="number"
+                id="salePrice"
+                placeholder="Sale Price"
+            >
+
+            <button onclick="addSale()">
+                Add Sale
+            </button>
+
+        </div>
+
+        <table>
+
+            <thead>
+
+                <tr>
+                    <th>ID</th>
+                    <th>Product ID</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Date</th>
+                </tr>
+
+            </thead>
+
+            <tbody id="saleTable">
+            </tbody>
+
+        </table>
+
+    </section>
+
+
+    <!-- REPORTS -->
+
+    <section id="reports" class="section">
+
+        <h2>Reports</h2>
+
+        <div class="report-card">
+
+            <h3>Inventory Summary</h3>
+
+            <p>
+                Total Products:
+                <strong id="reportProducts">0</strong>
+            </p>
+
+            <p>
+                Total Suppliers:
+                <strong id="reportSuppliers">0</strong>
+            </p>
+
+            <p>
+                Total Purchases:
+                <strong id="reportPurchases">0</strong>
+            </p>
+
+            <p>
+                Total Sales:
+                <strong id="reportSales">0</strong>
+            </p>
+
+        </div>
+
+    </section>
+
+</div>
+
+
+<script src="script.js"></script>
+
+</body>
+</html>
