@@ -45,19 +45,29 @@ function showSection(sectionId) {
 async function loadDashboard() {
 
     try {
+const productsResponse = await fetch(`${API}/products`);
+if (!productsResponse.ok) {
+    throw new Error(`Products API error: ${productsResponse.status}`);
+}
+const products = await productsResponse.json();
 
-        const products =
-            await fetch(`${API}/products`).then(r => r.json());
+const suppliersResponse = await fetch(`${API}/suppliers`);
+if (!suppliersResponse.ok) {
+    throw new Error(`Suppliers API error: ${suppliersResponse.status}`);
+}
+const suppliers = await suppliersResponse.json();
 
-        const suppliers =
-            await fetch(`${API}/suppliers`).then(r => r.json());
+const purchasesResponse = await fetch(`${API}/purchases`);
+if (!purchasesResponse.ok) {
+    throw new Error(`Purchases API error: ${purchasesResponse.status}`);
+}
+const purchases = await purchasesResponse.json();
 
-        const purchases =
-            await fetch(`${API}/purchases`).then(r => r.json());
-
-        const sales =
-            await fetch(`${API}/sales`).then(r => r.json());
-
+const salesResponse = await fetch(`${API}/sales`);
+if (!salesResponse.ok) {
+    throw new Error(`Sales API error: ${salesResponse.status}`);
+}
+const sales = await salesResponse.json();
 
         document.getElementById("productCount")
             .innerText = products.length;
