@@ -1,172 +1,93 @@
 const API = "https://pushkar-webapp-backend.onrender.com/api";
 
-function showSection(sectionId) {
-
-    const sections = document.querySelectorAll(".section");
-
-    sections.forEach(section => {
-        section.classList.remove("active");
-    });
-
-    document
-        .getElementById(sectionId)
-        .classList.add("active");
-
-    if (sectionId === "dashboard") {
-        loadDashboard();
-    }
-
-    if (sectionId === "products") {
-        loadProducts();
-    }
-
-    if (sectionId === "suppliers") {
-        loadSuppliers();
-    }
-
-    if (sectionId === "purchases") {
-        loadPurchases();
-    }
-
-    if (sectionId === "sales") {
-        loadSales();
-    }
-
-    if (sectionId === "reports") {
-        loadDashboard();
-    }
-}
-
-
-/* =========================
-   DASHBOARD
-========================= */
+/* =========================================================
+   LOAD DASHBOARD DATA
+========================================================= */
 
 async function loadDashboard() {
-
     try {
-const productsResponse = await fetch(`${API}/products`);
-if (!productsResponse.ok) {
-    throw new Error(`Products API error: ${productsResponse.status}`);
-}
-const products = await productsResponse.json();
+        const productsResponse = await fetch(`${API}/products`);
+        if (!productsResponse.ok) {
+            throw new Error("Products API error");
+        }
+        const products = await productsResponse.json();
 
-const suppliersResponse = await fetch(`${API}/suppliers`);
-if (!suppliersResponse.ok) {
-    throw new Error(`Suppliers API error: ${suppliersResponse.status}`);
-}
-const suppliers = await suppliersResponse.json();
+        const suppliersResponse = await fetch(`${API}/suppliers`);
+        if (!suppliersResponse.ok) {
+            throw new Error("Suppliers API error");
+        }
+        const suppliers = await suppliersResponse.json();
 
-const purchasesResponse = await fetch(`${API}/purchases`);
-if (!purchasesResponse.ok) {
-    throw new Error(`Purchases API error: ${purchasesResponse.status}`);
-}
-const purchases = await purchasesResponse.json();
+        const purchasesResponse = await fetch(`${API}/purchases`);
+        if (!purchasesResponse.ok) {
+            throw new Error("Purchases API error");
+        }
+        const purchases = await purchasesResponse.json();
 
-const salesResponse = await fetch(`${API}/sales`);
-if (!salesResponse.ok) {
-    throw new Error(`Sales API error: ${salesResponse.status}`);
-}
-const sales = await salesResponse.json();
+        const salesResponse = await fetch(`${API}/sales`);
+        if (!salesResponse.ok) {
+            throw new Error("Sales API error");
+        }
+        const sales = await salesResponse.json();
 
-        document.getElementById("productCount")
-            .innerText = products.length;
+        console.log("Products:", products);
+        console.log("Suppliers:", suppliers);
+        console.log("Purchases:", purchases);
+        console.log("Sales:", sales);
 
-        document.getElementById("supplierCount")
-            .innerText = suppliers.length;
+        displayProducts(products);
+        displaySuppliers(suppliers);
+        displayPurchases(purchases);
+        displaySales(sales);
 
-        document.getElementById("purchaseCount")
-            .innerText = purchases.length;
-
-        document.getElementById("salesCount")
-            .innerText = sales.length;
-
-
-        document.getElementById("reportProducts")
-            .innerText = products.length;
-
-        document.getElementById("reportSuppliers")
-            .innerText = suppliers.length;
-
-        document.getElementById("reportPurchases")
-            .innerText = purchases.length;
-
-        document.getElementById("reportSales")
-            .innerText = sales.length;
-
-    } catch (error) {
-
-        console.error(error);
-
-        alert(
-            "Backend is not connected. Make sure Spring Boot is running."
+        updateDashboardCounts(
+            products,
+            suppliers,
+            purchases,
+            sales
         );
-    }
-}
-
-
-/* =========================
-   PRODUCTS
-========================= */
-
-async function loadProducts() {
-
-    try {
-
-        const response =
-            await fetch(`${API}/products`);
-
-        const products =
-            await response.json();
-
-        const table =
-            document.getElementById("productTable");
-
-        table.innerHTML = "";
-
-        products.forEach(product => {
-
-            table.innerHTML += `
-    <tr>
-        <td>${product.id}</td>
-        <td>${product.product_name}</td>
-        <td>${product.category}</td>
-        <td>${product.price}</td>
-        <td>${product.quantity}</td>
-    </tr>
-`;
-
-        });
 
     } catch (error) {
-
-        console.error(error);
-
+        console.error("Backend error:", error);
     }
 }
 
+
+/* =========================================================
+   PRODUCTS
+========================================================= */
 
 async function addProduct() {
 
+    const productName =
+        document.getElementById("productName").value.trim();
+
+    const productCategory =
+        document.getElementById("productCategory").value.trim();
+
+    const productPrice =
+        document.getElementById("productPrice").value;
+
+    const productStock =
+        document.getElementById("productStock").value;
+
+    if (!productName || !productCategory || !productPrice || !productStock) {
+        alert("Please fill all product fields.");
+        return;
+    }
+
+    /*
+     * IMPORTANT:
+     * These names MUST match ProductController.java
+     */
     const product = {
-
-        name:
-            document.getElementById("productName").value,
-
-        category:
-            document.getElementById("productCategory").value,
-
-        price:
-            Number(
-                document.getElementById("productPrice").value
-            ),
-
-        stockQuantity:
-            Number(
-                document.getElementById("productStock").value
-            )
+        product_name: productName,
+        category: productCategory,
+        quantity: Number(productStock),
+        price: Number(productPrice)
     };
 
+    console.log("Sending product:", product);
 
     try {
 
@@ -183,11 +104,15 @@ async function addProduct() {
             }
         );
 
-
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Add product error:", errorText);
             throw new Error("Failed to add product");
         }
 
+        const savedProduct = await response.json();
+
+        console.log("Saved product:", savedProduct);
 
         alert("Product added successfully!");
 
@@ -196,320 +121,265 @@ async function addProduct() {
         document.getElementById("productPrice").value = "";
         document.getElementById("productStock").value = "";
 
-        loadProducts();
-        loadDashboard();
+        await loadDashboard();
 
     } catch (error) {
 
-        console.error(error);
+        console.error("Error adding product:", error);
 
-        alert("Unable to add product.");
+        alert("Failed to add product.");
     }
 }
 
 
-/* =========================
+/* =========================================================
+   DISPLAY PRODUCTS
+========================================================= */
+
+function displayProducts(products) {
+
+    const table = document.getElementById("productTable");
+
+    if (!table) {
+        console.warn("productTable not found");
+        return;
+    }
+
+    table.innerHTML = "";
+
+    if (products.length === 0) {
+
+        table.innerHTML = `
+            <tr>
+                <td colspan="5">No products available</td>
+            </tr>
+        `;
+
+        return;
+    }
+
+    products.forEach(product => {
+
+        table.innerHTML += `
+            <tr>
+                <td>${product.id}</td>
+                <td>${product.product_name ?? ""}</td>
+                <td>${product.category ?? ""}</td>
+                <td>${product.price ?? 0}</td>
+                <td>${product.quantity ?? 0}</td>
+            </tr>
+        `;
+
+    });
+}
+
+
+/* =========================================================
    SUPPLIERS
-========================= */
+========================================================= */
 
-async function loadSuppliers() {
+function displaySuppliers(suppliers) {
 
-    try {
+    const table = document.getElementById("supplierTable");
 
-        const response =
-            await fetch(`${API}/suppliers`);
-
-        const suppliers =
-            await response.json();
-
-        const table =
-            document.getElementById("supplierTable");
-
-        table.innerHTML = "";
-
-        suppliers.forEach(supplier => {
-
-            table.innerHTML += `
-                <tr>
-                    <td>${supplier.supplierId}</td>
-                    <td>${supplier.name}</td>
-                    <td>${supplier.phone}</td>
-                    <td>${supplier.email}</td>
-                    <td>${supplier.address}</td>
-                </tr>
-            `;
-
-        });
-
-    } catch (error) {
-
-        console.error(error);
-
+    if (!table) {
+        console.warn("supplierTable not found");
+        return;
     }
+
+    table.innerHTML = "";
+
+    if (suppliers.length === 0) {
+
+        table.innerHTML = `
+            <tr>
+                <td colspan="4">No suppliers available</td>
+            </tr>
+        `;
+
+        return;
+    }
+
+    suppliers.forEach(supplier => {
+
+        table.innerHTML += `
+            <tr>
+                <td>${supplier.id ?? ""}</td>
+                <td>${supplier.name ?? ""}</td>
+                <td>${supplier.phone ?? ""}</td>
+                <td>${supplier.email ?? ""}</td>
+            </tr>
+        `;
+
+    });
 }
 
 
-async function addSupplier() {
-
-    const supplier = {
-
-        name:
-            document.getElementById("supplierName").value,
-
-        phone:
-            document.getElementById("supplierPhone").value,
-
-        email:
-            document.getElementById("supplierEmail").value,
-
-        address:
-            document.getElementById("supplierAddress").value
-    };
-
-
-    try {
-
-        const response = await fetch(
-            `${API}/suppliers`,
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify(supplier)
-            }
-        );
-
-
-        if (!response.ok) {
-            throw new Error("Failed");
-        }
-
-
-        alert("Supplier added successfully!");
-
-        loadSuppliers();
-        loadDashboard();
-
-    } catch (error) {
-
-        console.error(error);
-
-        alert("Unable to add supplier.");
-    }
-}
-
-
-/* =========================
+/* =========================================================
    PURCHASES
-========================= */
+========================================================= */
 
-async function loadPurchases() {
+function displayPurchases(purchases) {
 
-    try {
+    const table = document.getElementById("purchaseTable");
 
-        const response =
-            await fetch(`${API}/purchases`);
-
-        const purchases =
-            await response.json();
-
-        const table =
-            document.getElementById("purchaseTable");
-
-        table.innerHTML = "";
-
-        purchases.forEach(purchase => {
-
-            table.innerHTML += `
-                <tr>
-                    <td>${purchase.purchaseId}</td>
-                    <td>${purchase.productId}</td>
-                    <td>${purchase.supplierId}</td>
-                    <td>${purchase.quantity}</td>
-                    <td>${purchase.purchasePrice}</td>
-                    <td>${purchase.purchaseDate || ""}</td>
-                </tr>
-            `;
-
-        });
-
-    } catch (error) {
-
-        console.error(error);
-
+    if (!table) {
+        console.warn("purchaseTable not found");
+        return;
     }
+
+    table.innerHTML = "";
+
+    if (purchases.length === 0) {
+
+        table.innerHTML = `
+            <tr>
+                <td colspan="5">No purchases available</td>
+            </tr>
+        `;
+
+        return;
+    }
+
+    purchases.forEach(purchase => {
+
+        table.innerHTML += `
+            <tr>
+                <td>${purchase.id ?? ""}</td>
+                <td>${purchase.productId ?? ""}</td>
+                <td>${purchase.supplierId ?? ""}</td>
+                <td>${purchase.quantity ?? 0}</td>
+                <td>${purchase.purchasePrice ?? 0}</td>
+            </tr>
+        `;
+
+    });
 }
 
 
-async function addPurchase() {
-
-    const purchase = {
-
-        productId:
-            Number(
-                document.getElementById("purchaseProduct").value
-            ),
-
-        supplierId:
-            Number(
-                document.getElementById("purchaseSupplier").value
-            ),
-
-        quantity:
-            Number(
-                document.getElementById("purchaseQuantity").value
-            ),
-
-        purchasePrice:
-            Number(
-                document.getElementById("purchasePrice").value
-            )
-    };
-
-
-    try {
-
-        const response = await fetch(
-            `${API}/purchases`,
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify(purchase)
-            }
-        );
-
-
-        if (!response.ok) {
-            throw new Error("Failed");
-        }
-
-
-        alert("Purchase added successfully!");
-
-        loadPurchases();
-        loadProducts();
-        loadDashboard();
-
-    } catch (error) {
-
-        console.error(error);
-
-        alert("Unable to add purchase.");
-    }
-}
-
-
-/* =========================
+/* =========================================================
    SALES
-========================= */
+========================================================= */
 
-async function loadSales() {
+function displaySales(sales) {
 
-    try {
+    const table = document.getElementById("salesTable");
 
-        const response =
-            await fetch(`${API}/sales`);
+    if (!table) {
+        console.warn("salesTable not found");
+        return;
+    }
 
-        const sales =
-            await response.json();
+    table.innerHTML = "";
 
-        const table =
-            document.getElementById("saleTable");
+    if (sales.length === 0) {
 
-        table.innerHTML = "";
+        table.innerHTML = `
+            <tr>
+                <td colspan="4">No sales available</td>
+            </tr>
+        `;
 
-        sales.forEach(sale => {
+        return;
+    }
 
-            table.innerHTML += `
-                <tr>
-                    <td>${sale.saleId}</td>
-                    <td>${sale.productId}</td>
-                    <td>${sale.quantity}</td>
-                    <td>${sale.salePrice}</td>
-                    <td>${sale.saleDate || ""}</td>
-                </tr>
-            `;
+    sales.forEach(sale => {
 
-        });
+        table.innerHTML += `
+            <tr>
+                <td>${sale.id ?? ""}</td>
+                <td>${sale.productId ?? ""}</td>
+                <td>${sale.quantity ?? 0}</td>
+                <td>${sale.salePrice ?? 0}</td>
+            </tr>
+        `;
 
-    } catch (error) {
+    });
+}
 
-        console.error(error);
 
+/* =========================================================
+   DASHBOARD COUNTS
+========================================================= */
+
+function updateDashboardCounts(
+    products,
+    suppliers,
+    purchases,
+    sales
+) {
+
+    const productCount =
+        document.getElementById("productCount");
+
+    const supplierCount =
+        document.getElementById("supplierCount");
+
+    const purchaseCount =
+        document.getElementById("purchaseCount");
+
+    const salesCount =
+        document.getElementById("salesCount");
+
+
+    if (productCount) {
+        productCount.textContent = products.length;
+    }
+
+    if (supplierCount) {
+        supplierCount.textContent = suppliers.length;
+    }
+
+    if (purchaseCount) {
+        purchaseCount.textContent = purchases.length;
+    }
+
+    if (salesCount) {
+        salesCount.textContent = sales.length;
     }
 }
 
 
-async function addSale() {
+/* =========================================================
+   DELETE PRODUCT
+========================================================= */
 
-    const sale = {
-
-        productId:
-            Number(
-                document.getElementById("saleProduct").value
-            ),
-
-        quantity:
-            Number(
-                document.getElementById("saleQuantity").value
-            ),
-
-        salePrice:
-            Number(
-                document.getElementById("salePrice").value
-            )
-    };
-
+async function deleteProduct(id) {
 
     try {
 
         const response = await fetch(
-            `${API}/sales`,
+            `${API}/products/${id}`,
             {
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify(sale)
+                method: "DELETE"
             }
         );
 
-
         if (!response.ok) {
-            throw new Error("Failed");
+            throw new Error("Failed to delete product");
         }
 
+        alert("Product deleted successfully!");
 
-        alert("Sale added successfully!");
-
-        loadSales();
-        loadProducts();
-        loadDashboard();
+        await loadDashboard();
 
     } catch (error) {
 
-        console.error(error);
+        console.error("Delete error:", error);
 
-        alert("Unable to add sale.");
+        alert("Failed to delete product.");
     }
 }
 
 
-/* =========================
-   START
-========================= */
+/* =========================================================
+   INITIAL LOAD
+========================================================= */
 
-window.onload = function () {
+document.addEventListener("DOMContentLoaded", () => {
+
+    console.log("Inventory Web App started");
 
     loadDashboard();
 
-};
+});
