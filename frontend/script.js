@@ -127,14 +127,14 @@ async function loadProducts() {
         products.forEach(product => {
 
             table.innerHTML += `
-                <tr>
-                    <td>${product.productId}</td>
-                    <td>${product.name}</td>
-                    <td>${product.category}</td>
-                    <td>${product.price}</td>
-                    <td>${product.stockQuantity}</td>
-                </tr>
-            `;
+    <tr>
+        <td>${product.id}</td>
+        <td>${product.product_name}</td>
+        <td>${product.category}</td>
+        <td>${product.price}</td>
+        <td>${product.quantity}</td>
+    </tr>
+`;
 
         });
 
