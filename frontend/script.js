@@ -1,33 +1,58 @@
 const API = "https://pushkar-webapp-backend.onrender.com/api";
 
 /* =========================================================
-   LOAD DASHBOARD DATA
+   SECTION NAVIGATION
 ========================================================= */
 
-async function loadDashboard() {
+function showSection(sectionId) {
+    document.querySelectorAll(".section").forEach(section => {
+        section.style.display = "none";
+    });
+
+    const section = document.getElementById(sectionId);
+
+    if (section) {
+        section.style.display = "block";
+    }
+}
+
+
+/* =========================================================
+   LOAD ALL DATA
+========================================================= */
+
+async function loadData() {
     try {
         const productsResponse = await fetch(`${API}/products`);
+
         if (!productsResponse.ok) {
-            throw new Error("Products API error");
+            throw new Error(`Products: ${productsResponse.status}`);
         }
+
         const products = await productsResponse.json();
 
         const suppliersResponse = await fetch(`${API}/suppliers`);
+
         if (!suppliersResponse.ok) {
-            throw new Error("Suppliers API error");
+            throw new Error(`Suppliers: ${suppliersResponse.status}`);
         }
+
         const suppliers = await suppliersResponse.json();
 
         const purchasesResponse = await fetch(`${API}/purchases`);
+
         if (!purchasesResponse.ok) {
-            throw new Error("Purchases API error");
+            throw new Error(`Purchases: ${purchasesResponse.status}`);
         }
+
         const purchases = await purchasesResponse.json();
 
         const salesResponse = await fetch(`${API}/sales`);
+
         if (!salesResponse.ok) {
-            throw new Error("Sales API error");
+            throw new Error(`Sales: ${salesResponse.status}`);
         }
+
         const sales = await salesResponse.json();
 
         console.log("Products:", products);
@@ -40,13 +65,6 @@ async function loadDashboard() {
         displayPurchases(purchases);
         displaySales(sales);
 
-        updateDashboardCounts(
-            products,
-            suppliers,
-            purchases,
-            sales
-        );
-
     } catch (error) {
         console.error("Backend error:", error);
     }
@@ -54,59 +72,69 @@ async function loadDashboard() {
 
 
 /* =========================================================
-   PRODUCTS
+   PRODUCT
 ========================================================= */
 
 async function addProduct() {
 
-    const productName =
-        document.getElementById("productName").value.trim();
+    const nameElement = document.getElementById("productName");
+    const categoryElement = document.getElementById("productCategory");
+    const priceElement = document.getElementById("productPrice");
+    const stockElement = document.getElementById("productStock");
 
-    const productCategory =
-        document.getElementById("productCategory").value.trim();
+    if (!nameElement || !categoryElement || !priceElement || !stockElement) {
+        console.error("Product form elements not found.");
+        return;
+    }
 
-    const productPrice =
-        document.getElementById("productPrice").value;
+    const productName = nameElement.value.trim();
+    const category = categoryElement.value.trim();
+    const price = Number(priceElement.value);
+    const quantity = Number(stockElement.value);
 
-    const productStock =
-        document.getElementById("productStock").value;
+    if (!productName || !category) {
+        alert("Please enter product name and category.");
+        return;
+    }
 
-    if (!productName || !productCategory || !productPrice || !productStock) {
-        alert("Please fill all product fields.");
+    if (isNaN(price) || isNaN(quantity)) {
+        alert("Please enter valid price and stock.");
         return;
     }
 
     /*
-     * IMPORTANT:
      * These names MUST match ProductController.java
      */
     const product = {
         product_name: productName,
-        category: productCategory,
-        quantity: Number(productStock),
-        price: Number(productPrice)
+        category: category,
+        quantity: quantity,
+        price: price
     };
 
-    console.log("Sending product:", product);
+    console.log("Sending:", product);
 
     try {
 
-        const response = await fetch(
-            `${API}/products`,
-            {
-                method: "POST",
+        const response = await fetch(`${API}/products`, {
+            method: "POST",
 
-                headers: {
-                    "Content-Type": "application/json"
-                },
+            headers: {
+                "Content-Type": "application/json"
+            },
 
-                body: JSON.stringify(product)
-            }
-        );
+            body: JSON.stringify(product)
+        });
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error("Add product error:", errorText);
+
+            console.error(
+                "Add product failed:",
+                response.status,
+                errorText
+            );
+
             throw new Error("Failed to add product");
         }
 
@@ -116,16 +144,16 @@ async function addProduct() {
 
         alert("Product added successfully!");
 
-        document.getElementById("productName").value = "";
-        document.getElementById("productCategory").value = "";
-        document.getElementById("productPrice").value = "";
-        document.getElementById("productStock").value = "";
+        nameElement.value = "";
+        categoryElement.value = "";
+        priceElement.value = "";
+        stockElement.value = "";
 
-        await loadDashboard();
+        await loadData();
 
     } catch (error) {
 
-        console.error("Error adding product:", error);
+        console.error("Add product error:", error);
 
         alert("Failed to add product.");
     }
@@ -138,16 +166,21 @@ async function addProduct() {
 
 function displayProducts(products) {
 
-    const table = document.getElementById("productTable");
+    /*
+     * Supports the table ID used by the existing project.
+     */
+    const table =
+        document.getElementById("productTable") ||
+        document.getElementById("productTableBody");
 
     if (!table) {
-        console.warn("productTable not found");
+        console.warn("Product table not found.");
         return;
     }
 
     table.innerHTML = "";
 
-    if (products.length === 0) {
+    if (!products || products.length === 0) {
 
         table.innerHTML = `
             <tr>
@@ -162,7 +195,7 @@ function displayProducts(products) {
 
         table.innerHTML += `
             <tr>
-                <td>${product.id}</td>
+                <td>${product.id ?? ""}</td>
                 <td>${product.product_name ?? ""}</td>
                 <td>${product.category ?? ""}</td>
                 <td>${product.price ?? 0}</td>
@@ -180,16 +213,18 @@ function displayProducts(products) {
 
 function displaySuppliers(suppliers) {
 
-    const table = document.getElementById("supplierTable");
+    const table =
+        document.getElementById("supplierTable") ||
+        document.getElementById("supplierTableBody");
 
     if (!table) {
-        console.warn("supplierTable not found");
+        console.warn("Supplier table not found.");
         return;
     }
 
     table.innerHTML = "";
 
-    if (suppliers.length === 0) {
+    if (!suppliers || suppliers.length === 0) {
 
         table.innerHTML = `
             <tr>
@@ -221,16 +256,18 @@ function displaySuppliers(suppliers) {
 
 function displayPurchases(purchases) {
 
-    const table = document.getElementById("purchaseTable");
+    const table =
+        document.getElementById("purchaseTable") ||
+        document.getElementById("purchaseTableBody");
 
     if (!table) {
-        console.warn("purchaseTable not found");
+        console.warn("Purchase table not found.");
         return;
     }
 
     table.innerHTML = "";
 
-    if (purchases.length === 0) {
+    if (!purchases || purchases.length === 0) {
 
         table.innerHTML = `
             <tr>
@@ -263,16 +300,18 @@ function displayPurchases(purchases) {
 
 function displaySales(sales) {
 
-    const table = document.getElementById("salesTable");
+    const table =
+        document.getElementById("salesTable") ||
+        document.getElementById("salesTableBody");
 
     if (!table) {
-        console.warn("salesTable not found");
+        console.warn("Sales table not found.");
         return;
     }
 
     table.innerHTML = "";
 
-    if (sales.length === 0) {
+    if (!sales || sales.length === 0) {
 
         table.innerHTML = `
             <tr>
@@ -299,48 +338,6 @@ function displaySales(sales) {
 
 
 /* =========================================================
-   DASHBOARD COUNTS
-========================================================= */
-
-function updateDashboardCounts(
-    products,
-    suppliers,
-    purchases,
-    sales
-) {
-
-    const productCount =
-        document.getElementById("productCount");
-
-    const supplierCount =
-        document.getElementById("supplierCount");
-
-    const purchaseCount =
-        document.getElementById("purchaseCount");
-
-    const salesCount =
-        document.getElementById("salesCount");
-
-
-    if (productCount) {
-        productCount.textContent = products.length;
-    }
-
-    if (supplierCount) {
-        supplierCount.textContent = suppliers.length;
-    }
-
-    if (purchaseCount) {
-        purchaseCount.textContent = purchases.length;
-    }
-
-    if (salesCount) {
-        salesCount.textContent = sales.length;
-    }
-}
-
-
-/* =========================================================
    DELETE PRODUCT
 ========================================================= */
 
@@ -356,16 +353,16 @@ async function deleteProduct(id) {
         );
 
         if (!response.ok) {
-            throw new Error("Failed to delete product");
+            throw new Error("Delete failed");
         }
 
         alert("Product deleted successfully!");
 
-        await loadDashboard();
+        await loadData();
 
     } catch (error) {
 
-        console.error("Delete error:", error);
+        console.error("Delete product error:", error);
 
         alert("Failed to delete product.");
     }
@@ -373,13 +370,13 @@ async function deleteProduct(id) {
 
 
 /* =========================================================
-   INITIAL LOAD
+   PAGE LOAD
 ========================================================= */
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", function () {
 
-    console.log("Inventory Web App started");
+    console.log("Inventory Web App loaded.");
 
-    loadDashboard();
+    loadData();
 
 });
